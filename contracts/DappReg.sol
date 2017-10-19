@@ -2,23 +2,9 @@
 //! By Parity Team (Ethcore), 2016.
 //! Released under the Apache Licence 2.
 
-pragma solidity ^0.4.1;
+pragma solidity ^0.4.17;
 
-contract Owned {
-	event NewOwner(address indexed old, address indexed current);
-
-	modifier only_owner {
-		if (msg.sender != owner) throw;
-		_;
-	}
-
-	address public owner = msg.sender;
-
-	function setOwner(address _new) only_owner {
-		NewOwner(owner, _new);
-		owner = _new;
-	}
-}
+import "Owned.sol";
 
 contract DappReg is Owned {
 	// id       - shared to be the same accross all contracts for a specific dapp (including GithuHint for the repo)
