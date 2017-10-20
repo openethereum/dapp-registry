@@ -17,22 +17,22 @@ contract DappReg is Owned {
 	}
 
 	modifier when_fee_paid {
-		if (msg.value < fee) throw;
+		require (msg.value >= fee);
 		_;
 	}
 
 	modifier only_dapp_owner(bytes32 _id) {
-		if (dapps[_id].owner != msg.sender) throw;
+		require (dapps[_id].owner == msg.sender);
 		_;
 	}
 
 	modifier either_owner(bytes32 _id) {
-		if (dapps[_id].owner != msg.sender && owner != msg.sender) throw;
+		require (dapps[_id].owner == msg.sender || owner == msg.sender);
 		_;
 	}
 
 	modifier when_id_free(bytes32 _id) {
-		if (dapps[_id].id != 0) throw;
+		require (dapps[_id].id == 0);
 		_;
 	}
 
@@ -47,63 +47,61 @@ contract DappReg is Owned {
 	uint public fee = 1 ether;
 
 	// returns the count of the dapps we have
-	function count() constant returns (uint) {
+	function count() constant public returns (uint) {
 		return ids.length;
 	}
 
 	// a dapp from the list
-	function at(uint _index) constant returns (bytes32 id, address owner) {
-		Dapp d = dapps[ids[_index]];
+	function at(uint _index) constant public returns (bytes32 id, address owner) {
+		Dapp storage d = dapps[ids[_index]];
 		id = d.id;
 		owner = d.owner;
 	}
 
 	// get with the id
-	function get(bytes32 _id) constant returns (bytes32 id, address owner) {
-		Dapp d = dapps[_id];
+	function get(bytes32 _id) constant public returns (bytes32 id, address owner) {
+		Dapp storage d = dapps[_id];
 		id = d.id;
 		owner = d.owner;
 	}
 
 	// add apps
-	function register(bytes32 _id) payable when_fee_paid when_id_free(_id) {
+	function register(bytes32 _id) payable when_fee_paid when_id_free(_id) public {
 		ids.push(_id);
 		dapps[_id] = Dapp(_id, msg.sender);
 		Registered(_id, msg.sender);
 	}
 
 	// remove apps
-	function unregister(bytes32 _id) either_owner(_id) {
+	function unregister(bytes32 _id) either_owner(_id) public {
 		delete dapps[_id];
 		Unregistered(_id);
 	}
 
 	// get meta information
-	function meta(bytes32 _id, bytes32 _key) constant returns (bytes32) {
+	function meta(bytes32 _id, bytes32 _key) constant public returns (bytes32) {
 		return dapps[_id].meta[_key];
 	}
 
 	// set meta information
-	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) only_dapp_owner(_id) {
+	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) only_dapp_owner(_id) public {
 		dapps[_id].meta[_key] = _value;
 		MetaChanged(_id, _key, _value);
 	}
 
 	// set the dapp owner
-	function setDappOwner(bytes32 _id, address _owner) only_dapp_owner(_id) {
+	function setDappOwner(bytes32 _id, address _owner) only_dapp_owner(_id) public {
 		dapps[_id].owner = _owner;
 		OwnerChanged(_id, _owner);
 	}
 
 	// set the registration fee
-	function setFee(uint _fee) only_owner {
+	function setFee(uint _fee) only_owner public {
 		fee = _fee;
 	}
 
 	// retrieve funds paid
-	function drain() only_owner {
-		if (!msg.sender.send(this.balance)) {
-			throw;
-		}
+	function drain() only_owner public {
+		msg.sender.transfer(this.balance);
 	}
 }
