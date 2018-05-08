@@ -16,7 +16,8 @@
 
 pragma solidity ^0.4.17;
 
-import "Owned.sol";
+import "./Owned.sol";
+
 
 contract DappReg is Owned {
 	// id       - shared to be the same accross all contracts for a specific dapp (including GithuHint for the repo)
@@ -28,22 +29,22 @@ contract DappReg is Owned {
 		mapping (bytes32 => bytes32) meta;
 	}
 
-	modifier when_fee_paid {
+	modifier whenFeePaid {
 		require (msg.value >= fee);
 		_;
 	}
 
-	modifier only_dapp_owner(bytes32 _id) {
+	modifier onlyDappOwner(bytes32 _id) {
 		require (dapps[_id].owner == msg.sender);
 		_;
 	}
 
-	modifier either_owner(bytes32 _id) {
+	modifier eitherOwner(bytes32 _id) {
 		require (dapps[_id].owner == msg.sender || owner == msg.sender);
 		_;
 	}
 
-	modifier when_id_free(bytes32 _id) {
+	modifier whenIdFree(bytes32 _id) {
 		require (dapps[_id].id == 0);
 		_;
 	}
@@ -59,61 +60,61 @@ contract DappReg is Owned {
 	uint public fee = 1 ether;
 
 	// returns the count of the dapps we have
-	function count() constant public returns (uint) {
+	function count() view public returns (uint) {
 		return ids.length;
 	}
 
 	// a dapp from the list
-	function at(uint _index) constant public returns (bytes32 id, address owner) {
+	function at(uint _index) view public returns (bytes32 id, address owner) {
 		Dapp storage d = dapps[ids[_index]];
 		id = d.id;
 		owner = d.owner;
 	}
 
 	// get with the id
-	function get(bytes32 _id) constant public returns (bytes32 id, address owner) {
+	function get(bytes32 _id) view public returns (bytes32 id, address owner) {
 		Dapp storage d = dapps[_id];
 		id = d.id;
 		owner = d.owner;
 	}
 
 	// add apps
-	function register(bytes32 _id) payable when_fee_paid when_id_free(_id) public {
+	function register(bytes32 _id) payable whenFeePaid whenIdFree(_id) public {
 		ids.push(_id);
 		dapps[_id] = Dapp(_id, msg.sender);
-		Registered(_id, msg.sender);
+		emit Registered(_id, msg.sender);
 	}
 
 	// remove apps
-	function unregister(bytes32 _id) either_owner(_id) public {
+	function unregister(bytes32 _id) eitherOwner(_id) public {
 		delete dapps[_id];
-		Unregistered(_id);
+		emit Unregistered(_id);
 	}
 
 	// get meta information
-	function meta(bytes32 _id, bytes32 _key) constant public returns (bytes32) {
+	function meta(bytes32 _id, bytes32 _key) view public returns (bytes32) {
 		return dapps[_id].meta[_key];
 	}
 
 	// set meta information
-	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) only_dapp_owner(_id) public {
+	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) onlyDappOwner(_id) public {
 		dapps[_id].meta[_key] = _value;
-		MetaChanged(_id, _key, _value);
+		emit MetaChanged(_id, _key, _value);
 	}
 
 	// set the dapp owner
-	function setDappOwner(bytes32 _id, address _owner) only_dapp_owner(_id) public {
+	function setDappOwner(bytes32 _id, address _owner) onlyDappOwner(_id) public {
 		dapps[_id].owner = _owner;
-		OwnerChanged(_id, _owner);
+		emit OwnerChanged(_id, _owner);
 	}
 
 	// set the registration fee
-	function setFee(uint _fee) only_owner public {
+	function setFee(uint _fee) onlyOwner public {
 		fee = _fee;
 	}
 
 	// retrieve funds paid
-	function drain() only_owner public {
-		msg.sender.transfer(this.balance);
+	function drain() onlyOwner public {
+		msg.sender.transfer(address(this).balance);
 	}
 }
