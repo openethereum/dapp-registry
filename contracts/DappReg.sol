@@ -26,6 +26,7 @@ contract DappReg is Owned {
 	struct Dapp {
 		bytes32 id;
 		address owner;
+		bool deleted;
 		mapping (bytes32 => bytes32) meta;
 	}
 
@@ -49,6 +50,11 @@ contract DappReg is Owned {
 		_;
 	}
 
+	modifier whenActive(bytes32 _id) {
+		require (!dapps[_id].deleted);
+		_;
+	}
+
 	event MetaChanged(bytes32 indexed id, bytes32 indexed key, bytes32 value);
 	event OwnerChanged(bytes32 indexed id, address indexed owner);
 	event Registered(bytes32 indexed id, address indexed owner);
@@ -65,14 +71,14 @@ contract DappReg is Owned {
 	}
 
 	// a dapp from the list
-	function at(uint _index) view public returns (bytes32 id, address owner) {
+	function at(uint _index) whenActive(ids[_index]) view public returns (bytes32 id, address owner) {
 		Dapp storage d = dapps[ids[_index]];
 		id = d.id;
 		owner = d.owner;
 	}
 
 	// get with the id
-	function get(bytes32 _id) view public returns (bytes32 id, address owner) {
+	function get(bytes32 _id) whenActive(_id) view public returns (bytes32 id, address owner) {
 		Dapp storage d = dapps[_id];
 		id = d.id;
 		owner = d.owner;
@@ -81,29 +87,29 @@ contract DappReg is Owned {
 	// add apps
 	function register(bytes32 _id) payable whenFeePaid whenIdFree(_id) public {
 		ids.push(_id);
-		dapps[_id] = Dapp(_id, msg.sender);
+		dapps[_id] = Dapp(_id, msg.sender, false);
 		emit Registered(_id, msg.sender);
 	}
 
 	// remove apps
 	function unregister(bytes32 _id) eitherOwner(_id) public {
-		delete dapps[_id];
+	    dapps[_id].deleted = true;
 		emit Unregistered(_id);
 	}
 
 	// get meta information
-	function meta(bytes32 _id, bytes32 _key) view public returns (bytes32) {
+	function meta(bytes32 _id, bytes32 _key) whenActive(_id) view public returns (bytes32) {
 		return dapps[_id].meta[_key];
 	}
 
 	// set meta information
-	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) onlyDappOwner(_id) public {
+	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) whenActive(_id) onlyDappOwner(_id) public {
 		dapps[_id].meta[_key] = _value;
 		emit MetaChanged(_id, _key, _value);
 	}
 
 	// set the dapp owner
-	function setDappOwner(bytes32 _id, address _owner) onlyDappOwner(_id) public {
+	function setDappOwner(bytes32 _id, address _owner) whenActive(_id) onlyDappOwner(_id) public {
 		dapps[_id].owner = _owner;
 		emit OwnerChanged(_id, _owner);
 	}
