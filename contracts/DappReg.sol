@@ -93,7 +93,7 @@ contract DappReg is Owned {
 
 	// remove apps
 	function unregister(bytes32 _id) eitherOwner(_id) public {
-	    dapps[_id].deleted = true;
+		dapps[_id].deleted = true;
 		emit Unregistered(_id);
 	}
 
