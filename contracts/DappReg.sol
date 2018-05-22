@@ -81,6 +81,7 @@ contract DappReg is Owned {
 	// remove apps
 	function unregister(bytes32 _id)
 		public
+		whenActive(_id)
 		eitherOwner(_id)
 	{
 		dapps[_id].deleted = true;
