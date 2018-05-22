@@ -66,39 +66,6 @@ contract DappReg is Owned {
 
 	uint public fee = 1 ether;
 
-	// returns the count of the dapps we have
-	function count()
-		public
-		view
-		returns (uint)
-	{
-		return ids.length;
-	}
-
-	// a dapp from the list
-	function at(uint _index)
-		public
-		view
-		whenActive(ids[_index])
-		returns (bytes32 id, address owner)
-	{
-		Dapp storage d = dapps[ids[_index]];
-		id = d.id;
-		owner = d.owner;
-	}
-
-	// get with the id
-	function get(bytes32 _id)
-		public
-		view
-		whenActive(_id)
-		returns (bytes32 id, address owner)
-	{
-		Dapp storage d = dapps[_id];
-		id = d.id;
-		owner = d.owner;
-	}
-
 	// add apps
 	function register(bytes32 _id)
 		public
@@ -118,16 +85,6 @@ contract DappReg is Owned {
 	{
 		dapps[_id].deleted = true;
 		emit Unregistered(_id);
-	}
-
-	// get meta information
-	function meta(bytes32 _id, bytes32 _key)
-		public
-		view
-		whenActive(_id)
-		returns (bytes32)
-	{
-		return dapps[_id].meta[_key];
 	}
 
 	// set meta information
@@ -164,5 +121,48 @@ contract DappReg is Owned {
 		onlyOwner
 	{
 		msg.sender.transfer(address(this).balance);
+	}
+
+	// returns the count of the dapps we have
+	function count()
+		public
+		view
+		returns (uint)
+	{
+		return ids.length;
+	}
+
+	// a dapp from the list
+	function at(uint _index)
+		public
+		view
+		whenActive(ids[_index])
+		returns (bytes32 id, address owner)
+	{
+		Dapp storage d = dapps[ids[_index]];
+		id = d.id;
+		owner = d.owner;
+	}
+
+	// get with the id
+	function get(bytes32 _id)
+		public
+		view
+		whenActive(_id)
+		returns (bytes32 id, address owner)
+	{
+		Dapp storage d = dapps[_id];
+		id = d.id;
+		owner = d.owner;
+	}
+
+	// get meta information
+	function meta(bytes32 _id, bytes32 _key)
+		public
+		view
+		whenActive(_id)
+		returns (bytes32)
+	{
+		return dapps[_id].meta[_key];
 	}
 }
