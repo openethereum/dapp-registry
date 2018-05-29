@@ -22,6 +22,7 @@ import "./Owned.sol";
 contract DappReg is Owned {
 	// id       - shared to be the same accross all contracts for a specific dapp (including GithuHint for the repo)
 	// owner    - that guy
+	// deleted  - whether the dapp has been unregistered and should be ignored
 	// meta     - meta information for the dapp
 	struct Dapp {
 		bytes32 id;
@@ -31,27 +32,27 @@ contract DappReg is Owned {
 	}
 
 	modifier whenFeePaid {
-		require (msg.value >= fee);
+		require(msg.value >= fee);
 		_;
 	}
 
 	modifier onlyDappOwner(bytes32 _id) {
-		require (dapps[_id].owner == msg.sender);
+		require(dapps[_id].owner == msg.sender);
 		_;
 	}
 
 	modifier eitherOwner(bytes32 _id) {
-		require (dapps[_id].owner == msg.sender || owner == msg.sender);
+		require(dapps[_id].owner == msg.sender || owner == msg.sender);
 		_;
 	}
 
 	modifier whenIdFree(bytes32 _id) {
-		require (dapps[_id].id == 0);
+		require(dapps[_id].id == 0);
 		_;
 	}
 
 	modifier whenActive(bytes32 _id) {
-		require (!dapps[_id].deleted);
+		require(!dapps[_id].deleted);
 		_;
 	}
 
@@ -65,62 +66,104 @@ contract DappReg is Owned {
 
 	uint public fee = 1 ether;
 
-	// returns the count of the dapps we have
-	function count() view public returns (uint) {
-		return ids.length;
-	}
-
-	// a dapp from the list
-	function at(uint _index) whenActive(ids[_index]) view public returns (bytes32 id, address owner) {
-		Dapp storage d = dapps[ids[_index]];
-		id = d.id;
-		owner = d.owner;
-	}
-
-	// get with the id
-	function get(bytes32 _id) whenActive(_id) view public returns (bytes32 id, address owner) {
-		Dapp storage d = dapps[_id];
-		id = d.id;
-		owner = d.owner;
-	}
-
 	// add apps
-	function register(bytes32 _id) payable whenFeePaid whenIdFree(_id) public {
+	function register(bytes32 _id)
+		public
+		payable
+		whenFeePaid
+		whenIdFree(_id)
+	{
 		ids.push(_id);
 		dapps[_id] = Dapp(_id, msg.sender, false);
 		emit Registered(_id, msg.sender);
 	}
 
 	// remove apps
-	function unregister(bytes32 _id) eitherOwner(_id) public {
+	function unregister(bytes32 _id)
+		public
+		whenActive(_id)
+		eitherOwner(_id)
+	{
 		dapps[_id].deleted = true;
 		emit Unregistered(_id);
 	}
 
-	// get meta information
-	function meta(bytes32 _id, bytes32 _key) whenActive(_id) view public returns (bytes32) {
-		return dapps[_id].meta[_key];
-	}
-
 	// set meta information
-	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value) whenActive(_id) onlyDappOwner(_id) public {
+	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value)
+		public
+		whenActive(_id)
+		onlyDappOwner(_id)
+	{
 		dapps[_id].meta[_key] = _value;
 		emit MetaChanged(_id, _key, _value);
 	}
 
 	// set the dapp owner
-	function setDappOwner(bytes32 _id, address _owner) whenActive(_id) onlyDappOwner(_id) public {
+	function setDappOwner(bytes32 _id, address _owner)
+		public
+		whenActive(_id)
+		onlyDappOwner(_id)
+	{
 		dapps[_id].owner = _owner;
 		emit OwnerChanged(_id, _owner);
 	}
 
 	// set the registration fee
-	function setFee(uint _fee) onlyOwner public {
+	function setFee(uint _fee)
+		public
+		onlyOwner
+	{
 		fee = _fee;
 	}
 
 	// retrieve funds paid
-	function drain() onlyOwner public {
+	function drain()
+		public
+		onlyOwner
+	{
 		msg.sender.transfer(address(this).balance);
+	}
+
+	// returns the count of the dapps we have
+	function count()
+		public
+		view
+		returns (uint)
+	{
+		return ids.length;
+	}
+
+	// a dapp from the list
+	function at(uint _index)
+		public
+		view
+		whenActive(ids[_index])
+		returns (bytes32 id, address owner)
+	{
+		Dapp storage d = dapps[ids[_index]];
+		id = d.id;
+		owner = d.owner;
+	}
+
+	// get with the id
+	function get(bytes32 _id)
+		public
+		view
+		whenActive(_id)
+		returns (bytes32 id, address owner)
+	{
+		Dapp storage d = dapps[_id];
+		id = d.id;
+		owner = d.owner;
+	}
+
+	// get meta information
+	function meta(bytes32 _id, bytes32 _key)
+		public
+		view
+		whenActive(_id)
+		returns (bytes32)
+	{
+		return dapps[_id].meta[_key];
 	}
 }
