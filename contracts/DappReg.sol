@@ -14,7 +14,7 @@
 //! See the License for the specific language governing permissions and
 //! limitations under the License.
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.22;
 
 import "./Owned.sol";
 
@@ -30,6 +30,16 @@ contract DappReg is Owned {
 		bool deleted;
 		mapping (bytes32 => bytes32) meta;
 	}
+
+	event MetaChanged(bytes32 indexed id, bytes32 indexed key, bytes32 value);
+	event OwnerChanged(bytes32 indexed id, address indexed owner);
+	event Registered(bytes32 indexed id, address indexed owner);
+	event Unregistered(bytes32 indexed id);
+
+	mapping (bytes32 => Dapp) dapps;
+	bytes32[] ids;
+
+	uint public fee = 1 ether;
 
 	modifier whenFeePaid {
 		require(msg.value >= fee);
@@ -55,16 +65,6 @@ contract DappReg is Owned {
 		require(!dapps[_id].deleted);
 		_;
 	}
-
-	event MetaChanged(bytes32 indexed id, bytes32 indexed key, bytes32 value);
-	event OwnerChanged(bytes32 indexed id, address indexed owner);
-	event Registered(bytes32 indexed id, address indexed owner);
-	event Unregistered(bytes32 indexed id);
-
-	mapping (bytes32 => Dapp) dapps;
-	bytes32[] ids;
-
-	uint public fee = 1 ether;
 
 	// add apps
 	function register(bytes32 _id)
