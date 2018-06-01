@@ -28,7 +28,7 @@ contract Owned {
 	}
 
 	function setOwner(address _new)
-		public
+		external
 		onlyOwner
 	{
 		emit NewOwner(owner, _new);

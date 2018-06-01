@@ -68,7 +68,7 @@ contract DappReg is Owned {
 
 	// add apps
 	function register(bytes32 _id)
-		public
+		external
 		payable
 		whenFeePaid
 		whenIdFree(_id)
@@ -80,7 +80,7 @@ contract DappReg is Owned {
 
 	// remove apps
 	function unregister(bytes32 _id)
-		public
+		external
 		whenActive(_id)
 		eitherOwner(_id)
 	{
@@ -90,7 +90,7 @@ contract DappReg is Owned {
 
 	// set meta information
 	function setMeta(bytes32 _id, bytes32 _key, bytes32 _value)
-		public
+		external
 		whenActive(_id)
 		onlyDappOwner(_id)
 	{
@@ -100,7 +100,7 @@ contract DappReg is Owned {
 
 	// set the dapp owner
 	function setDappOwner(bytes32 _id, address _owner)
-		public
+		external
 		whenActive(_id)
 		onlyDappOwner(_id)
 	{
@@ -110,7 +110,7 @@ contract DappReg is Owned {
 
 	// set the registration fee
 	function setFee(uint _fee)
-		public
+		external
 		onlyOwner
 	{
 		fee = _fee;
@@ -118,7 +118,7 @@ contract DappReg is Owned {
 
 	// retrieve funds paid
 	function drain()
-		public
+		external
 		onlyOwner
 	{
 		msg.sender.transfer(address(this).balance);
@@ -126,7 +126,7 @@ contract DappReg is Owned {
 
 	// returns the count of the dapps we have
 	function count()
-		public
+		external
 		view
 		returns (uint)
 	{
@@ -135,7 +135,7 @@ contract DappReg is Owned {
 
 	// a dapp from the list
 	function at(uint _index)
-		public
+		external
 		view
 		whenActive(ids[_index])
 		returns (bytes32 id, address owner)
@@ -147,7 +147,7 @@ contract DappReg is Owned {
 
 	// get with the id
 	function get(bytes32 _id)
-		public
+		external
 		view
 		whenActive(_id)
 		returns (bytes32 id, address owner)
@@ -159,7 +159,7 @@ contract DappReg is Owned {
 
 	// get meta information
 	function meta(bytes32 _id, bytes32 _key)
-		public
+		external
 		view
 		whenActive(_id)
 		returns (bytes32)
