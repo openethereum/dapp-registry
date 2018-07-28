@@ -283,5 +283,11 @@ contract("DappReg", accounts => {
       () => dappReg.setDappOwner(id, accounts[0], { from: owner }),
       "revert",
     );
+
+    // should not allow re-registering an unregistered dapp
+    await assertThrowsAsync(
+      () => dappReg.register(id, { value: web3.toWei("1", "ether"), from: owner }),
+      "revert",
+    );
   });
 });
